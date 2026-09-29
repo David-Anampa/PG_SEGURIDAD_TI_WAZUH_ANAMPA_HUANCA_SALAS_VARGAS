@@ -1,0 +1,22 @@
+<!--
+  Respuesta activa del prototipo: bloqueo temporal de la IP atacante ante fuerza bruta SSH.
+  Uso: copiar el bloque <active-response> dentro de <ossec_config> en
+  /var/ossec/etc/ossec.conf del SERVIDOR y reiniciar:
+      sudo systemctl restart wazuh-manager
+  Verificar en el agente:
+      sudo tail -f /var/ossec/logs/active-responses.log
+      sudo iptables -L -n
+  Confirmar el ID de la regla y sus umbrales en el conjunto de reglas de la versión instalada.
+-->
+<ossec_config>
+  <active-response>
+    <!-- Comando incluido en Wazuh: bloquea la IP con el firewall del agente -->
+    <command>firewall-drop</command>
+    <!-- local: el bloqueo se ejecuta en el agente que generó el evento -->
+    <location>local</location>
+    <!-- Regla de sshd: múltiples fallos de autenticación (fuerza bruta) -->
+    <rules_id>5763</rules_id>
+    <!-- Segundos que la IP permanece bloqueada; luego se desbloquea sola -->
+    <timeout>180</timeout>
+  </active-response>
+</ossec_config>
