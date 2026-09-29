@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wazuh: detección y respuesta automática | Proyecto de Seguridad de TI</title>
+<meta name="description" content="Proyecto de Seguridad de TI: Wazuh como SIEM/XDR gratuito, con demostración de detección y bloqueo automático de un ataque de fuerza bruta.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f6;--ink:#10202f;--mute:#4b5d6e;--card:#fff;--line:#cfd8e1;--blue:#1257c4;--red:#c22f2f;--green:#17794a;--term:#0f1b27}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.6 "Source Sans 3",system-ui,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.1;margin:0}
+a{color:var(--blue)}:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+nav{position:sticky;top:0;background:rgba(238,242,246,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);z-index:5}
+nav .wrap{display:flex;gap:22px;align-items:center;height:54px;overflow-x:auto;white-space:nowrap}
+nav b{font-family:"Bricolage Grotesque";font-size:19px;margin-right:auto}nav a{text-decoration:none;color:var(--mute);font-size:16px}
+.hero{padding:64px 0 48px;display:grid;grid-template-columns:1fr 1.05fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(36px,5.2vw,58px);font-weight:800;letter-spacing:-.02em}
+.hero p{color:var(--mute);max-width:46ch;margin:18px 0 0}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}.tags span{border:1px solid var(--line);background:#fff;border-radius:99px;padding:3px 12px;font-size:15px}
+.sim{background:var(--term);color:#d7e3ee;border-radius:10px;overflow:hidden;box-shadow:0 12px 30px rgba(16,32,47,.22)}
+.bar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#182b3c;font:500 13px "JetBrains Mono",monospace}
+.st{padding:2px 10px;border-radius:99px;background:#24405a}.st.att{background:var(--red)}.st.blk{background:var(--green)}
+.log{height:250px;overflow:auto;padding:12px 14px;font:400 13px/1.55 "JetBrains Mono",monospace}
+.log div{white-space:pre-wrap}.f{color:#f4a3a3}.a{color:#ffd166}.ok{color:#6fdca4}.d{color:#8aa0b3}
+.ctl{display:flex;gap:10px;padding:12px 14px;background:#182b3c;align-items:center;flex-wrap:wrap}
+button{font:600 16px "Source Sans 3";border:0;border-radius:6px;padding:9px 16px;cursor:pointer;background:var(--blue);color:#fff}
+button.g{background:#2b4258}button:disabled{opacity:.5;cursor:default}
+.ctl small{color:#8aa0b3;margin-left:auto;font-size:13px}
+section{padding:56px 0;border-top:1px solid var(--line)}
+section h2{font-size:clamp(28px,3.6vw,40px);margin-bottom:12px}.lead{color:var(--mute);max-width:62ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:start;margin-top:26px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px}
+.box img{width:100%;height:auto;display:block}
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s}
+ol.steps li{counter-increment:s;padding:12px 0 12px 46px;position:relative;border-bottom:1px solid var(--line)}
+ol.steps li:before{content:counter(s);position:absolute;left:0;top:11px;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font:600 15px "JetBrains Mono"}
+pre{background:var(--term);color:#d7e3ee;border-radius:8px;padding:14px;overflow:auto;font:13px/1.5 "JetBrains Mono",monospace;margin:14px 0 0}
+table{width:100%;border-collapse:collapse;font-size:16px;margin-top:20px}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}th{border-bottom:2px solid var(--ink)}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:24px}
+.dl a{display:block;background:#fff;border:1px solid var(--line);border-left:6px solid var(--blue);border-radius:8px;padding:16px 18px;text-decoration:none;color:var(--ink)}
+.dl a strong{display:block;font:800 22px "Bricolage Grotesque"}.dl a span{color:var(--mute);font-size:15px}
+footer{padding:34px 0;border-top:1px solid var(--line);color:var(--mute);font-size:15px}
+@media(max-width:820px){.hero,.two{grid-template-columns:1fr}.hero{padding-top:36px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<nav><div class="wrap"><b>Wazuh · Proyecto</b><a href="#que">Qué es</a><a href="#como">Cómo funciona</a><a href="#demo">Demostración</a><a href="#resultados">Resultados</a><a href="#descargas">Descargas</a></div></nav>
+
+<header class="wrap hero">
+  <div>
+    <h1>Un servidor vigila, los agentes reportan y el firewall responde solo.</h1>
+    <p>Wazuh es una plataforma gratuita de seguridad (SIEM/XDR) que vigila computadoras y servidores en tiempo real. Este proyecto la instala, conecta un equipo de prueba y demuestra cómo detecta y frena un ataque de fuerza bruta.</p>
+    <div class="tags"><span>Código abierto</span><span>SIEM + XDR</span><span>Respuesta activa</span><span>MITRE T1110</span></div>
+  </div>
+  <div class="sim" aria-label="Simulación del ataque">
+    <div class="bar"><span>victima-linux · sshd</span><span class="st" id="st">Vigilando</span></div>
+    <div class="log" id="log" role="log" aria-live="polite"><div class="d">Agente conectado. Esperando eventos…</div></div>
+    <div class="ctl"><button id="go">Lanzar ataque</button><button class="g" id="rs">Reiniciar</button><small>Simulación ilustrativa. Los tiempos reales se miden en el laboratorio.</small></div>
+  </div>
+</header>
+
+<main>
+<section id="que"><div class="wrap">
+  <h2>Qué es Wazuh</h2>
+  <p class="lead">Recolecta los registros de cada equipo, los compara con reglas de detección y muestra las alertas en un panel web. Además revisa la integridad de archivos, las vulnerabilidades y la configuración segura, y puede ordenar acciones automáticas de contención.</p>
+</div></section>
+
+<section id="como"><div class="wrap">
+  <h2>Cómo funciona</h2>
+  <p class="lead">Se instala un servidor central que analiza todo y agentes ligeros en los equipos a proteger.</p>
+  <div class="two">
+    <div class="box"><img src="assets/arquitectura.png" alt="Diagrama: agentes envían eventos al servidor Wazuh, que envía alertas al indexer y al dashboard, y ordena la respuesta activa"></div>
+    <table><thead><tr><th>Componente</th><th>Función</th></tr></thead><tbody>
+      <tr><td>Agente</td><td>Recolecta eventos y ejecuta órdenes</td></tr>
+      <tr><td>Servidor</td><td>Aplica reglas y genera alertas</td></tr>
+      <tr><td>Indexer</td><td>Guarda las alertas</td></tr>
+      <tr><td>Dashboard</td><td>Panel web de visualización</td></tr></tbody></table>
+  </div>
+</div></section>
+
+<section id="demo"><div class="wrap">
+  <h2>Demostración práctica</h2>
+  <div class="two">
+    <ol class="steps">
+      <li>Instalar el servidor Wazuh en una máquina virtual.</li>
+      <li>Generar el comando de agente en el panel y ejecutarlo en el equipo de prueba.</li>
+      <li>Activar la respuesta activa <code>firewall-drop</code> para la regla de fuerza bruta SSH.</li>
+      <li>Atacar el equipo de prueba desde otra máquina del laboratorio.</li>
+      <li>Verificar la alerta, el bloqueo y el desbloqueo automático.</li>
+    </ol>
+    <pre>&lt;active-response&gt;
+  &lt;command&gt;firewall-drop&lt;/command&gt;
+  &lt;location&gt;local&lt;/location&gt;
+  &lt;rules_id&gt;5763&lt;/rules_id&gt;
+  &lt;timeout&gt;180&lt;/timeout&gt;
+&lt;/active-response&gt;</pre>
+  </div>
+  <p class="lead" style="margin-top:20px">Todo el laboratorio se ejecuta en una red aislada y con autorización del docente.</p>
+</div></section>
+
+<section id="resultados"><div class="wrap">
+  <h2>Resultados del prototipo</h2>
+  <table><thead><tr><th>Indicador</th><th>Meta</th><th>Resultado</th></tr></thead><tbody>
+    <tr><td>Tiempo de detección</td><td>&lt; 60 s</td><td>[completar]</td></tr>
+    <tr><td>Tiempo de contención</td><td>≤ 10 s</td><td>[completar]</td></tr>
+    <tr><td>Cobertura de agentes</td><td>100 %</td><td>[completar]</td></tr>
+    <tr><td>Accesos logrados tras el bloqueo</td><td>0</td><td>[completar]</td></tr></tbody></table>
+  <!-- Agregar aquí las capturas: <img src="evidencias/captura1.png" alt="..."> -->
+</div></section>
+
+<section id="descargas"><div class="wrap">
+  <h2>Descargas</h2>
+  <div class="dl">
+    <a href="docs/Informe_Wazuh_APA.docx" download><strong>Informe en Word</strong><span>Formato APA 7 (.docx)</span></a>
+    <a href="docs/Informe_Wazuh_APA.pdf" download><strong>Informe en PDF</strong><span>Formato APA 7 (.pdf)</span></a>
+    <a href="docs/Presentacion_Wazuh.pptx" download><strong>Presentación</strong><span>Diapositivas (.pptx)</span></a>
+    <a href="docs/bibliografia_APA7.md"><strong>Bibliografía</strong><span>40 fuentes en APA 7</span></a>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">[Nombres del equipo] · Seguridad de Tecnologías de la Información · [Universidad] · 2026-II</div></footer>
+
+<script>
+const log=document.getElementById("log"),st=document.getElementById("st"),go=document.getElementById("go"),rs=document.getElementById("rs");
+let n=0,t=null,blocked=false,cd=null;
+const ip="192.168.56.30";
+function add(c,s){const d=document.createElement("div");d.className=c;d.textContent=s;log.appendChild(d);log.scrollTop=log.scrollHeight}
+function clock(){return new Date().toLocaleTimeString("es-PE",{hour12:false})}
+function state(s,c){st.textContent=s;st.className="st "+(c||"")}
+function reset(){clearInterval(t);clearInterval(cd);n=0;blocked=false;log.innerHTML="";add("d","Agente conectado. Esperando eventos…");state("Vigilando");go.disabled=false}
+go.onclick=()=>{go.disabled=true;state("Bajo ataque","att");
+  t=setInterval(()=>{
+    if(blocked){add("d",clock()+"  "+ip+" → conexión rechazada por el firewall");return}
+    n++;add("f",clock()+"  sshd: Failed password for usuario_prueba from "+ip+" ("+n+")");
+    if(n===8){clearInterval(t);
+      setTimeout(()=>add("a",clock()+"  ALERTA regla 5763 · sshd: brute force · MITRE T1110"),350);
+      setTimeout(()=>{blocked=true;add("ok",clock()+"  Respuesta activa: firewall-drop bloquea "+ip);state("IP bloqueada","blk");
+        let s=180;cd=setInterval(()=>{s--;if(s<=0){clearInterval(cd);add("ok",clock()+"  Desbloqueo automático de "+ip);state("Vigilando");go.disabled=false}},50);
+        t=setInterval(()=>{add("d",clock()+"  "+ip+" → conexión rechazada por el firewall");},900);setTimeout(()=>clearInterval(t),3600)},900)}
+  },420)};
+rs.onclick=reset;
+</script>
+</body>
+</html>
